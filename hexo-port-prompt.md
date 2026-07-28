@@ -1,3 +1,7 @@
+<!--
+  Author: https://github.com/xiaxi626
+-->
+
 # Hexo 主题 → Gridea Pro Pongo2 (Jinja2) 迁移全流程 Prompt
 
 > 本 Prompt 基于 gridea-theme-builder Skill（`theme-builder-skill` 仓库）的完整能力设计，覆盖从逆向分析、变量映射、模板重写、CSS 移植、自动化验证、真机走查到映射积累的全流程。**支持 Pug / Swig / Nunjucks / EJS 四种 Hexo 源模板引擎**，目标统一为 Gridea Pro Pongo2 (Jinja2)。直接将本文档交给 AI 助手即可执行。
@@ -23,7 +27,7 @@
 ```
 加载 gridea-theme-builder skill。
 
-请严格按照 theme-builder-skill/hexo-to-gridea-prompt.md 中的流程，
+请严格按照 theme-builder-skill/hexo-port-prompt.md 中的流程，
 将 Hexo 主题 {HEXO_THEME_PATH} 迁移为 Gridea Pro Pongo2 主题，目标主题名 {THEME_NAME}。
 ```
 
@@ -32,8 +36,8 @@
 ```
 加载 gridea-theme-builder skill。
 
-请严格按照 theme-builder-skill/hexo-to-gridea-prompt.md 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-to-gridea-mappings.md。
+请严格按照 theme-builder-skill/hexo-port-prompt.md 中阶段七的流程，
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-port-mappings.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -60,7 +64,7 @@
 7. 阅读 `references/theme-config-schema.md`（config.json 规范、5 种 GUI 控件类型）
 8. 阅读 `references/css-patterns.md`（CSS 变量体系、暗色模式、Markdown 样式）
 9. 阅读 `references/quality-checklist.md`（P0/P1/P2 检查清单）
-10. **如果存在** `references/hexo-to-gridea-mappings.md`，阅读该文件作为**先验映射知识**（历史迁移中积累的变量对应关系，来源引擎不限）
+10. **如果存在** `references/hexo-port-mappings.md`，阅读该文件作为**先验映射知识**（历史迁移中积累的变量对应关系，来源引擎不限）
 
 ---
 
@@ -160,7 +164,7 @@ index.pug
 
 1. 从阶段一 1.3 中获取**源主题的所有变量引用清单**（Hexo 侧）
 2. 从 `references/template-variables.md` 中获取**Gridea 侧的所有可用变量及字段名**（已在阶段一前置知识中阅读）
-3. **如果存在** `references/hexo-to-gridea-mappings.md`，将其作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证
+3. **如果存在** `references/hexo-port-mappings.md`，将其作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证
 4. 逐项匹配：对每个 Hexo 变量，在 Gridea 变量目录中寻找语义等价的对应物
 
 ### 2.2 推导输出格式
@@ -495,7 +499,7 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 
 ## 阶段七：映射积累（将本次迁移经验持久化）
 
-> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 `references/hexo-to-gridea-mappings.md` 中，供后续迁移直接复用。
+> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 `references/hexo-port-mappings.md` 中，供后续迁移直接复用。
 
 阶段七支持**两种使用模式**：
 
@@ -510,8 +514,8 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 ```
 加载 gridea-theme-builder skill。
 
-请严格按照 theme-builder-skill/hexo-to-gridea-prompt.md 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-to-gridea-mappings.md。
+请严格按照 theme-builder-skill/hexo-port-prompt.md 中阶段七的流程，
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-port-mappings.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -605,7 +609,7 @@ AI 对**未被排除的**文件，逐一执行以下比对：
 
 ### 7.3 写入映射文件
 
-将所有新发现的映射关系**追加**到 `references/hexo-to-gridea-mappings.md`。**不修改项目中其他任何文件。** 映射文件格式如下：
+将所有新发现的映射关系**追加**到 `references/hexo-port-mappings.md`。**不修改项目中其他任何文件。** 映射文件格式如下：
 
 ```markdown
 # Hexo → Gridea Pro 变量映射积累
@@ -714,7 +718,7 @@ L2 来源的标记格式：`## 来源：{theme-name}（迁移日期：{YYYY-MM-D
 
 #### 阶段二消费时的优先级
 
-阶段二推导变量映射时，读取 `hexo-to-gridea-mappings.md` 的优先级：
+阶段二推导变量映射时，读取 `hexo-port-mappings.md` 的优先级：
 
 1. **优先采用 L1 映射**（高置信度，可直接复用）
 2. **L2 映射作为参考**（需与 `template-variables.md` 交叉验证，不盲信）
@@ -928,13 +932,13 @@ Gridea Pro 主题应覆盖以下所有页面。**补全时请保持源主题的�
 
 ## 关键安全规则
 
-### hexo-to-gridea-mappings.md 编码保护
+### hexo-port-mappings.md 编码保护
 
 > **严重性：高** | 该文件是跨阶段积累的核心先验知识库，编码一旦损坏将导致所有后续迁移的质量基准失效。
 
 **规则：**
 
-1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入 `hexo-to-gridea-mappings.md`。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
+1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入 `hexo-port-mappings.md`。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
 
 2. **沙箱处理原则**：如需修改该文件，必须先：
    - 在临时文件（如 `_temp_mappings_test.md`）中写入修改内容
@@ -948,7 +952,7 @@ Gridea Pro 主题应覆盖以下所有页面。**补全时请保持源主题的�
 4. **修改后全量校验**：每次修改完成后，必须运行以下检查：
    ```python
    import re
-   content = open('hexo-to-gridea-mappings.md', encoding='utf-8').read()
+   content = open('hexo-port-mappings.md', encoding='utf-8').read()
    bad = re.findall(r'[\x07\x08\x0c\x0d]', content)
    assert not bad, f"发现 {len(bad)} 个控制字符"
    # 额外确认高频词完整性
