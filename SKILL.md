@@ -2,11 +2,16 @@
   Author: https://github.com/xiaxi626
 -->
 
+---
+name: theme-port-skill
+description: 专用于 Hexo 主题到 Gridea Pro Pongo2 (Jinja2) 迁移的工作流。支持 Pug/Swig/Nunjucks/EJS 四种源模板引擎。需配合 gridea-theme-builder skill 使用——后者提供脚手架生成、语法校验、渲染测试脚本及模板变量参考文档。
+---
+
 # Hexo 主题 → Gridea Pro Pongo2 (Jinja2) 迁移全流程 Prompt
 
-> 本 Prompt 基于 gridea-theme-builder Skill（`theme-builder-skill` 仓库）的完整能力设计，覆盖从逆向分析、变量映射、模板重写、CSS 移植、自动化验证、真机走查到映射积累的全流程。**支持 Pug / Swig / Nunjucks / EJS 四种 Hexo 源模板引擎**，目标统一为 Gridea Pro Pongo2 (Jinja2)。直接将本文档交给 AI 助手即可执行。
+> 本 Prompt 基于两个 Skill 的完整能力设计：**gridea-theme-builder**（提供脚手架生成、语法验证、渲染测试等工具链及全部参考文档）和 **theme-port-skill**（提供迁移工作流、映射积累和 pongo2check 真语法校验）。覆盖从逆向分析、变量映射、模板重写、CSS 移植、自动化验证、真机走查到映射积累的全流程。**支持 Pug / Swig / Nunjucks / EJS 四种 Hexo 源模板引擎**，目标统一为 Gridea Pro Pongo2 (Jinja2)。直接将本文档交给 AI 助手即可执行。
 
-> **命名约定：** 仓库目录名为 `theme-builder-skill/`，Skill 注册名为 `gridea-theme-builder`（见 `SKILL.md` 前置元数据）。本文档中所有路径均相对于仓库根目录 `theme-builder-skill/`。
+> **命名约定：** 本 Skill 的项目目录名为 `theme-port-skill/`。依赖的 `gridea-theme-builder` Skill（项目目录 `theme-builder-skill/`）提供 `scripts/` 和 `references/` 工具链。**映射积累文件 `hexo-port-mappings.md` 位于本项目的 `references/` 目录下**，不再写入 gridea-theme-builder。
 
 ---
 
@@ -18,26 +23,29 @@
 
 ## 使用方式
 
-**第一步**：将本文件放到仓库根目录 `theme-builder-skill/` 下（即与 `SKILL.md`、`scripts/`、`references/` 同级）。
+**第一步**：确保已加载以下两个 Skill：
+
+- `gridea-theme-builder`（提供脚手架生成、语法校验、渲染测试脚本及全部参考文档）
+- `theme-port-skill`（即本 Skill，提供迁移工作流、映射积累和 pongo2check 真语法校验）
 
 **第二步**：根据需要选择以下两种模式之一：
 
 **完整迁移模式**（从零开始迁移一个 Hexo 主题，AI 会自动检测源模板引擎）：
 
 ```
-加载 gridea-theme-builder skill。
+加载 gridea-theme-builder skill 和 theme-port-skill。
 
-请严格按照 theme-builder-skill/hexo-port-prompt.md 中的流程，
+请严格按照 theme-port-skill 中的流程，
 将 Hexo 主题 {HEXO_THEME_PATH} 迁移为 Gridea Pro Pongo2 主题，目标主题名 {THEME_NAME}。
 ```
 
 **仅积累映射模式**（对已有迁移主题进行事后交叉比对，不执行迁移）：
 
 ```
-加载 gridea-theme-builder skill。
+加载 gridea-theme-builder skill 和 theme-port-skill。
 
-请严格按照 theme-builder-skill/hexo-port-prompt.md 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-port-mappings.md。
+请严格按照 theme-port-skill 中阶段七的流程，
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -50,20 +58,22 @@
 
 ## 前置知识加载
 
-在执行任何迁移操作前，必须完成以下知识加载。所有文件路径均相对于 `theme-builder-skill/` 根目录：
+在执行任何迁移操作前，必须完成以下知识加载：
 
 **Skill 能力：**
 1. 加载 `gridea-theme-builder` skill（提供脚手架生成、语法校验、渲染测试等工具链）
 2. 加载 `frontend-design` skill（用于 CSS 像素级复刻和前端设计优化）
 
-**参考文档：**
-3. 阅读 `SKILL.md`（Skill 总入口，6 步工作流 + 20 条关键规则）
+**参考文档（以下均来自 gridea-theme-builder skill，从 gridea-theme-builder 的仓库目录读取）：**
+3. 阅读 `SKILL.md`（gridea-theme-builder Skill 总入口，6 步工作流 + 20 条关键规则）
 4. 阅读 `references/template-variables.md`（Gridea 所有模板变量，**最重要**）
 5. 阅读 `references/jinja2-guide.md`（14 个 Pongo2 致命差异 + 常用模式代码）
 6. 阅读 `references/theme-architecture.md`（目录结构、渲染生命周期、静态资源路径规则）
 7. 阅读 `references/theme-config-schema.md`（config.json 规范、5 种 GUI 控件类型）
 8. 阅读 `references/css-patterns.md`（CSS 变量体系、暗色模式、Markdown 样式）
 9. 阅读 `references/quality-checklist.md`（P0/P1/P2 检查清单）
+
+**映射积累（来自 theme-port-skill 本项目）：**
 10. **如果存在** `references/hexo-port-mappings.md`，阅读该文件作为**先验映射知识**（历史迁移中积累的变量对应关系，来源引擎不限）
 
 ---
@@ -163,8 +173,8 @@ index.pug
 **不在 Prompt 中硬编码任何 Hexo→Gridea 变量映射。** 所有映射关系由 AI 通过以下步骤动态推导：
 
 1. 从阶段一 1.3 中获取**源主题的所有变量引用清单**（Hexo 侧）
-2. 从 `references/template-variables.md` 中获取**Gridea 侧的所有可用变量及字段名**（已在阶段一前置知识中阅读）
-3. **如果存在** `references/hexo-port-mappings.md`，将其作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证
+2. 从 gridea-theme-builder 的 `references/template-variables.md` 中获取**Gridea 侧的所有可用变量及字段名**（已在阶段一前置知识中阅读）
+3. **如果存在** theme-port-skill 的 `references/hexo-port-mappings.md`，将其作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证
 4. 逐项匹配：对每个 Hexo 变量，在 Gridea 变量目录中寻找语义等价的对应物
 
 ### 2.2 推导输出格式
@@ -204,6 +214,8 @@ AI 完成推导后，**将映射表输出到对话中供用户确认**（不写�
 ## 阶段三：脚手架生成 + 模板重写
 
 ### 3.1 生成脚手架
+
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
 
 ```bash
 python scripts/scaffold_theme.py {THEME_NAME} --engine jinja2 --output-dir ./themes
@@ -337,6 +349,8 @@ python scripts/scaffold_theme.py {THEME_NAME} --engine jinja2 --output-dir ./the
 
 每重写完一个模板文件，立即执行：
 
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
+
 ```bash
 python scripts/validate_syntax.py ./themes/{THEME_NAME}
 ```
@@ -382,7 +396,25 @@ CSS 移植的目标是**完全还原源主题的视觉效果**。源主题有什
 
 ## 阶段五：自动化验证 + 内容核查
 
-### 5.1 语法验证
+### 5.0 真 Pongo2 语法验证 (权威语法门)
+
+> **注意：** pongo2check 工具位于 **theme-port-skill** 的 `tools/pongo2check/` 目录下。在 theme-port-skill 仓库根目录执行：
+
+```bash
+go run ./tools/pongo2check ./themes/{THEME_NAME}
+```
+
+**目标：零 FAIL。**
+
+pongo2check 使用 Gridea Pro 真机同款 `flosch/pongo2/v6` 解析器,完整复刻了 Gridea Pro 的 SanitizingLoader(标签换行清理 + loop→forloop 变量映射)和 9 个自定义 filter(`reading_time`、`excerpt`、`word_count`、`strip_html`、`relative`、`timeago`、`to_json`、`group_by`、`to_int`)。**这个工具通过的模板,Gridea Pro 真机一定能编译;它报错的模板,真机也一定编译不过。没有假阳性。**
+
+> **前置依赖**：需要 Go 环境。若当前环境无 Go,CI 中用 `actions/setup-go@v5`,本地执行 `go install golang.org/dl/go@latest`。若 Go 不可用,降级使用 5.1 的正则校验,但需明确其可能漏检(见 5.1 说明)。
+
+### 5.1 补充正则校验 (语法补漏)
+
+官方 `validate_syntax.py` 是正则启发式,用 Python 标准库无依赖。它抓常见坑但**不做真实编译**,已知会放过:嵌套顺序错误、未注册 filter、HTML 破损。仅当 Go 环境不可用时作为降级方案,或在 5.0 通过后作为补充检查。
+
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
 
 ```bash
 python scripts/validate_syntax.py ./themes/{THEME_NAME}
@@ -403,6 +435,8 @@ python scripts/validate_syntax.py ./themes/{THEME_NAME}
 | `not in` 写法 | Pongo2 不识别 | 改为 `not "a" in b` |
 
 ### 5.2 渲染测试
+
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
 
 ```bash
 python scripts/render_test.py ./themes/{THEME_NAME} --output-dir ./test-output
@@ -499,7 +533,7 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 
 ## 阶段七：映射积累（将本次迁移经验持久化）
 
-> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 `references/hexo-port-mappings.md` 中，供后续迁移直接复用。
+> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 theme-port-skill 的 `references/hexo-port-mappings.md` 中，供后续迁移直接复用。
 
 阶段七支持**两种使用模式**：
 
@@ -512,10 +546,10 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 如果你手头有之前手动迁移完成的主题（不是通过本 Prompt 的流程迁移的），可以跳过阶段一至六，**单独执行阶段七**。AI 将先对目标主题进行前置预检（语法校验 + 渲染测试），通过后再执行交叉比对。向 AI 发送：
 
 ```
-加载 gridea-theme-builder skill。
+加载 gridea-theme-builder skill 和 theme-port-skill。
 
-请严格按照 theme-builder-skill/hexo-port-prompt.md 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 references/hexo-port-mappings.md。
+请严格按照 theme-port-skill 中阶段七的流程，
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -536,7 +570,21 @@ AI 将直接跳转到 7.0 开始执行前置预检，不执行阶段一至六。
 
 对迁移后的 Gridea 主题目录依次执行以下检查：
 
-**步骤 1：语法校验**
+**步骤 0：真 Pongo2 语法验证 (权威)**
+
+> **注意：** pongo2check 工具位于 **theme-port-skill** 的 `tools/pongo2check/` 目录下。在 theme-port-skill 仓库根目录执行：
+
+```bash
+go run ./tools/pongo2check <GRIDEA_THEME_PATH>
+```
+
+要求：**零 FAIL**。如果存在 FAIL,告知用户具体问题并**停止流程**,要求用户修复后重新运行模式 B。此工具使用 Gridea Pro 真机同款解析器,FAIL 意味着真机也会编译失败。
+
+> 若无 Go 环境,可跳过此步骤,但必须执行步骤 1 的 validate_syntax.py 作为最低限替代方案。
+
+**步骤 1：补充正则校验**
+
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
 
 ```bash
 python scripts/validate_syntax.py <GRIDEA_THEME_PATH>
@@ -546,6 +594,8 @@ python scripts/validate_syntax.py <GRIDEA_THEME_PATH>
 
 **步骤 2：渲染测试**
 
+> **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
+
 ```bash
 python scripts/render_test.py <GRIDEA_THEME_PATH>
 ```
@@ -554,7 +604,7 @@ python scripts/render_test.py <GRIDEA_THEME_PATH>
 
 **步骤 3：结构完整性检查**
 
-参照 `references/quality-checklist.md` 的 P0 级别，快速确认以下边界情况：
+参照 gridea-theme-builder 的 `references/quality-checklist.md` 的 P0 级别，快速确认以下边界情况：
 
 - 0 篇文章时不崩溃
 - 无封面图文章不崩溃
@@ -609,13 +659,13 @@ AI 对**未被排除的**文件，逐一执行以下比对：
 
 ### 7.3 写入映射文件
 
-将所有新发现的映射关系**追加**到 `references/hexo-port-mappings.md`。**不修改项目中其他任何文件。** 映射文件格式如下：
+将所有新发现的映射关系**追加**到 theme-port-skill 的 `references/hexo-port-mappings.md`。**不修改项目中其他任何文件。** 映射文件格式如下：
 
 ```markdown
 # Hexo → Gridea Pro 变量映射积累
 
 > 本文件由阶段七交叉比对生成（需用户确认排除范围），累积所有已确认的跨系统变量映射关系。
-> 后续迁移时，阶段二优先查阅本文件作为先验知识；如有冲突，以 `template-variables.md` 为准。
+> 后续迁移时，阶段二优先查阅本文件作为先验知识；如有冲突，以 template-variables.md 为准。
 
 ---
 
@@ -718,10 +768,10 @@ L2 来源的标记格式：`## 来源：{theme-name}（迁移日期：{YYYY-MM-D
 
 #### 阶段二消费时的优先级
 
-阶段二推导变量映射时，读取 `hexo-port-mappings.md` 的优先级：
+阶段二推导变量映射时，读取 theme-port-skill 的 `hexo-port-mappings.md` 的优先级：
 
 1. **优先采用 L1 映射**（高置信度，可直接复用）
-2. **L2 映射作为参考**（需与 `template-variables.md` 交叉验证，不盲信）
+2. **L2 映射作为参考**（需与 gridea-theme-builder 的 `template-variables.md` 交叉验证，不盲信）
 3. 如果同一变量有多个 L1 映射且冲突，**以最新日期的 L1 为准**
 
 ---
@@ -847,8 +897,9 @@ Swig 和 Nunjucks 的 `macro` 与 Pug mixin 类似，但用 `{% %}` 语法。
 
 ## 附录 B：发布前最终检查清单
 
-参照 `references/quality-checklist.md` 的 P0 级别逐项确认：
+参照 gridea-theme-builder 的 `references/quality-checklist.md` 的 P0 级别逐项确认：
 
+- [ ] `pongo2check` 零 FAIL (真 Pongo2 语法编译通过)
 - [ ] `validate_syntax.py` 零错误零警告
 - [ ] `render_test.py` 所有页面渲染成功
 - [ ] 输出 HTML 无残留模板标签
@@ -938,7 +989,7 @@ Gridea Pro 主题应覆盖以下所有页面。**补全时请保持源主题的�
 
 **规则：**
 
-1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入 `hexo-port-mappings.md`。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
+1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入 theme-port-skill 的 `references/hexo-port-mappings.md`。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
 
 2. **沙箱处理原则**：如需修改该文件，必须先：
    - 在临时文件（如 `_temp_mappings_test.md`）中写入修改内容
