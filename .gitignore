@@ -1,0 +1,18 @@
+# Node.js 依赖（克隆后按 README 执行 npm install 本地安装）
+node_modules/
+npm-debug.log*
+
+# Go 构建产物
+tools/pongo2check/pongo2check
+tools/pongo2check/pongo2check.exe
+
+# Python
+__pycache__/
+*.pyc
+
+# 测试/CI 产物
+test-output/
+
+# 操作系统
+.DS_Store
+Thumbs.db

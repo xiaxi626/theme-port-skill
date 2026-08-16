@@ -1,23 +1,19 @@
-<!--
-  Author: https://github.com/xiaxi626
--->
-
 ---
 name: theme-port-skill
-description: 专用于 Hexo 主题到 Gridea Pro Pongo2 (Jinja2) 迁移的工作流。支持 Pug/Swig/Nunjucks/EJS 四种源模板引擎。需配合 gridea-theme-builder skill 使用——后者提供脚手架生成、语法校验、渲染测试脚本及模板变量参考文档。
+description: 专用于 Hexo 主题到 Gridea Pro 迁移的工作流，支持 Pongo2 (Jinja2) 和 EJS 两种目标引擎。支持 Pug/Swig/Nunjucks/EJS 四种源模板引擎。需配合 gridea-theme-builder skill 使用——后者提供脚手架生成、语法校验、渲染测试脚本及模板变量参考文档。
 ---
 
-# Hexo 主题 → Gridea Pro Pongo2 (Jinja2) 迁移全流程 Prompt
+# Hexo 主题 → Gridea Pro 迁移全流程 Prompt
 
-> 本 Prompt 基于两个 Skill 的完整能力设计：**gridea-theme-builder**（提供脚手架生成、语法验证、渲染测试等工具链及全部参考文档）和 **theme-port-skill**（提供迁移工作流、映射积累和 pongo2check 真语法校验）。覆盖从逆向分析、变量映射、模板重写、CSS 移植、自动化验证、真机走查到映射积累的全流程。**支持 Pug / Swig / Nunjucks / EJS 四种 Hexo 源模板引擎**，目标统一为 Gridea Pro Pongo2 (Jinja2)。直接将本文档交给 AI 助手即可执行。
+> 本 Prompt 基于两个 Skill 的完整能力设计：**gridea-theme-builder**（提供脚手架生成、语法验证、渲染测试等工具链及全部参考文档）和 **theme-port-skill**（提供迁移工作流、映射积累和 pongo2check 真语法校验）。覆盖从逆向分析、变量映射、模板重写、CSS 移植、自动化验证、真机走查到映射积累的全流程。**支持 Pug / Swig / Nunjucks / EJS 四种 Hexo 源模板引擎**，目标支持 Pongo2 (Jinja2) 和 EJS 两种引擎——AI 将根据迁移目标自动选择正确的引擎。直接将本文档交给 AI 助手即可执行。
 
-> **命名约定：** 本 Skill 的项目目录名为 `theme-port-skill/`。依赖的 `gridea-theme-builder` Skill（项目目录 `theme-builder-skill/`）提供 `scripts/` 和 `references/` 工具链。**映射积累文件 `hexo-port-mappings.md` 位于本项目的 `references/` 目录下**，不再写入 gridea-theme-builder。
+> **命名约定：** 本 Skill 的项目目录名为 `theme-port-skill/`。依赖的 `gridea-theme-builder` Skill（项目目录 `theme-builder-skill/`）提供 `scripts/` 和 `references/` 工具链。**映射积累文件位于本项目的 `references/` 目录下**：`hexo-port-mappings-pongo2.md`（Pongo2 目标引擎）和 `hexo-port-mappings-ejs.md`（EJS 目标引擎），不再写入 gridea-theme-builder。
 
 ---
 
 ## 角色设定
 
-你是一位资深前端工程师和 Gridea Pro 主题开发专家，精通 Jinja2 (Pongo2) 模板语法、CSS 像素级复刻、响应式设计以及 Hexo → Gridea 跨系统迁移。你的工作标准是 **100% 视觉还原**——如果迁移后的主题在视觉上不像原主题，就是失败。
+你是一位资深前端工程师和 Gridea Pro 主题开发专家，精通 Jinja2 (Pongo2) 和 EJS 模板语法、CSS 像素级复刻、响应式设计以及 Hexo → Gridea 跨系统迁移。你的工作标准是 **100% 视觉还原**——如果迁移后的主题在视觉上不像原主题，就是失败。
 
 ---
 
@@ -45,7 +41,7 @@ description: 专用于 Hexo 主题到 Gridea Pro Pongo2 (Jinja2) 迁移的工作
 加载 gridea-theme-builder skill 和 theme-port-skill。
 
 请严格按照 theme-port-skill 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings.md。
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings-pongo2.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -74,7 +70,10 @@ description: 专用于 Hexo 主题到 Gridea Pro Pongo2 (Jinja2) 迁移的工作
 9. 阅读 `references/quality-checklist.md`（P0/P1/P2 检查清单）
 
 **映射积累（来自 theme-port-skill 本项目）：**
-10. **如果存在** `references/hexo-port-mappings.md`，阅读该文件作为**先验映射知识**（历史迁移中积累的变量对应关系，来源引擎不限）
+10. 根据目标引擎阅读对应的映射文件作为**先验映射知识**（历史迁移中积累的变量对应关系）：
+    - **Pongo2 目标**：阅读 `references/hexo-port-mappings-pongo2.md`
+    - **EJS 目标**：阅读 `references/hexo-port-mappings-ejs.md`
+    - 如果目标引擎未明确，两个文件均阅读
 
 ---
 
@@ -174,7 +173,9 @@ index.pug
 
 1. 从阶段一 1.3 中获取**源主题的所有变量引用清单**（Hexo 侧）
 2. 从 gridea-theme-builder 的 `references/template-variables.md` 中获取**Gridea 侧的所有可用变量及字段名**（已在阶段一前置知识中阅读）
-3. **如果存在** theme-port-skill 的 `references/hexo-port-mappings.md`，将其作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证
+3. 根据目标引擎，将 theme-port-skill 的映射文件作为先验知识——其中已积累的映射关系可以直接复用，但需与当前源主题的实际变量使用情况交叉验证：
+   - **Pongo2 目标**：读取 `references/hexo-port-mappings-pongo2.md`
+   - **EJS 目标**：读取 `references/hexo-port-mappings-ejs.md`
 4. 逐项匹配：对每个 Hexo 变量，在 Gridea 变量目录中寻找语义等价的对应物
 
 ### 2.2 推导输出格式
@@ -217,19 +218,29 @@ AI 完成推导后，**将映射表输出到对话中供用户确认**（不写�
 
 > **注意：** 以下脚本命令来自 **gridea-theme-builder skill**，请在 gridea-theme-builder 的仓库根目录下执行。
 
+**Pongo2 目标：**
 ```bash
 python scripts/scaffold_theme.py {THEME_NAME} --engine jinja2 --output-dir ./themes
+```
+
+**EJS 目标：**
+```bash
+python scripts/scaffold_theme.py {THEME_NAME} --engine ejs --output-dir ./themes
 ```
 
 这将生成完整的可运行主题骨架。**不要修改目录结构**，直接在骨架文件上替换内容。
 
 ### 3.2 模板重写原则
 
-**核心原则：不是翻译源模板语法，而是理解源模板渲染出的 HTML 结构，用 Pongo2 重新生成同样的 HTML。**
+**核心原则：不是翻译源模板语法，而是理解源模板渲染出的 HTML 结构，用目标引擎（Pongo2 或 EJS）重新生成同样的 HTML。**
 
-#### 3.2.1 源语法 → Pongo2 转换对照
+#### 3.2.1 源语法 → 目标引擎转换对照
 
-根据阶段一 1.0 检测到的源引擎，使用对应的转换表。**目标引擎均为 Pongo2 (Jinja2)。**
+根据阶段一 1.0 检测到的源引擎和目标引擎，使用对应的转换表。
+
+**Pongo2 目标引擎：** 使用下表 A-D（源 → Pongo2）。
+
+**EJS 目标引擎：** 源模板为 EJS 时，多数语法可直接复用（`<%= %>`、`<%- %>`、`<% include() %>`）。关键差异见下方表 E。非 EJS 源（Pug/Swig/Nunjucks）迁移到 EJS 目标时，先转换为 EJS 语法再对照 EJS 规则。
 
 ##### 表 A：Pug → Pongo2
 
@@ -303,6 +314,43 @@ python scripts/scaffold_theme.py {THEME_NAME} --engine jinja2 --output-dir ./the
 | `{# 注释 #}` | `{# 注释 #}` | 完全相同 |
 
 > **Swig/Nunjucks 主题的迁移成本远低于 Pug 和 EJS。** 这两种引擎与 Pongo2 共享 90% 的语法，主要差异仅在于文件后缀、路径约定和 macro 转 include。
+
+##### 表 E：Hexo EJS → Gridea EJS（目标引擎为 EJS）
+
+| Hexo EJS | Gridea EJS | 差异说明 |
+|----------|-----------|---------|
+| `<% config.title %>` | `<%= site.customConfig.siteName %>` | 变量前缀 `config.*` → `site.*` / `site.customConfig.*` |
+| `<% theme.xxx %>` | `<%= site.customConfig.xxx %>` | `theme.*` → `site.customConfig.*` |
+| `<% page.title %>` | `<%= post.title %>` | `page.*` → `post.*`（详情页） |
+| `<% page.prev %>` | `<%= post.prevPost %>` | **方向相反**：Hexo prev=更早，Gridea prevPost=更新 |
+| `<% page.next %>` | `<%= post.nextPost %>` | 同上 |
+| `<% page.date %>`（moment） | `<%= post.date %>`（RFC3339）+ `<%= post.dateFormat %>` | **EJS 无 `|date` 禁忌**，`post.date` 可直接用于 `datetime` 属性 |
+| `<% page.content %>` | `<%- post.content %>` | `page.*` → `post.*`，用 `<%-` 不转义输出 |
+| `<% partial('path', {data}) %>` | `<%- include('partials/path', {data}) %>` | Hexo `partial()` → EJS `include()`，路径加 `partials/` 前缀 |
+| `<% url_for(path) %>` | 直接写相对路径 / `<%= post.link %>` | 无等价 helper |
+| `<% date_xml(date) %>` | `<%= post.date %>` | RFC3339 即合法 datetime |
+| `<% full_date(date) %>` | `<%= post.dateFormat %>` | 服务端 format → 预构建字段 |
+| `<% strip_html(str) %>` | 手写正则 `.replace(/<[^>]*>/g, '')` | helper → 手写 JS |
+| `<% truncate(str, {length}) %>` | `Array.from(str).slice(0,N).join('')+'...'` | 用 `Array.from` 处理 unicode |
+| `<% list_tags(tags) %>` | 手写 `<ul>` + `forEach` | helper → 手写 |
+| `<% list_categories(cats) %>` | 手写 `<ul>` + `forEach` | helper → 手写 |
+| `<% toc(content, opts) %>` | 客户端 JS `buildToc()` | 服务端 → 客户端 |
+| `<% __('key') %>` | 硬编码中文 | 无多语言机制 |
+| `<% is_home() %>` / `<% is_post() %>` | 路由隐式决定 + `post` 是否存在 | `is_*()` helper 移除 |
+| `<% paginator({opts}) %>` | `<%- include('partials/paginator', {paginator}) %>` | helper → 手写 partial + 算法 |
+| toggle 布尔值判断 | `String(site.customConfig.showXxx) !== 'false'` | GUI 传入字符串，需显式转换 |
+| `theme.menu`（对象） | `menus`（数组） | 结构完全不同 |
+| `site.tags` / `site.categories` | `tags` / `categories`（顶层变量） | 变量位置变化 |
+| `tag.length` | `tag.count` | 字段名不同 |
+| `page.posts` | `posts`（顶层变量） | Query `.each` → 数组 `.forEach` |
+
+> **EJS 目标引擎关键规则：**
+> 1. HTML 输出用 `<%- %>`（不转义），纯文本用 `<%= %>`
+> 2. 自定义配置通过 `site.customConfig.xxx` 访问，**不是** Pongo2 的 `theme_config.xxx`
+> 3. toggle 配置值为字符串，必须显式判断 `=== 'true'` 或 `!== 'false'`
+> 4. EJS 无 filter 语法，逻辑直接写 JS（`forEach` / `&&` / `||` / `typeof`）
+> 5. 无模板继承（`extends`），各页面模板为完整 `<!DOCTYPE html>` 文档，通过 `include()` 组装
+> 6. `post.date` 可直接用于 `datetime` 属性，**无 Pongo2 的 `|date` 禁忌**
 
 #### 3.2.2 Pongo2 致命规则（每次写模板前回顾）
 
@@ -396,7 +444,105 @@ CSS 移植的目标是**完全还原源主题的视觉效果**。源主题有什
 
 ## 阶段五：自动化验证 + 内容核查
 
-### 5.0 真 Pongo2 语法验证 (权威语法门)
+### 5.0 验证路径选择
+
+根据目标引擎选择对应的验证方案：
+
+- **Pongo2 目标**：使用 5.1（真 Pongo2 语法验证）→ 5.2（补充正则校验）→ 5.3（渲染测试）
+- **EJS 目标**：使用 5.0-EJS.1（真 EJS 语法验证，权威语法门）→ 5.0-EJS.2（EJS 内容验证）
+
+---
+
+### 5.0-EJS.1 真 EJS 语法验证 (权威语法门)
+
+> **工具位置：** theme-port-skill 的 `tools/ejs2check/` 目录
+
+使用 Gridea Pro 真机同款 EJS 解析器（`ejs` npm 包 v3.1.10，与 Gridea Pro 前端 `package.json` 依赖版本一致）编译全部 `.ejs` 模板。
+
+```bash
+# 首次使用：安装依赖（node_modules/ 不随仓库分发，克隆后需先执行）
+cd tools/ejs2check && npm install
+
+# 快速语法检查（仅验证 compile）
+node tools/ejs2check/main.js ./themes/{THEME_NAME}
+
+# 完整 include 链解析（更彻底，但较慢）
+node tools/ejs2check/main.js ./themes/{THEME_NAME} --render
+```
+
+**目标：零 FAIL。**
+
+ejs2check 使用 Gridea Pro 前端同款 `ejs` v3.1.10 解析器，完整复刻了 EJS 的 include 路径解析（相对当前文件目录 + 自动追加 `.ejs`/`.html` 扩展名 + views root 回退）。**这个工具通过的模板，Gridea Pro 真机一定能编译；它报错的模板，真机也一定编译不过。没有假阳性。**
+
+**两种模式的区别：**
+
+| 模式 | 命令 | 说明 |
+|------|------|------|
+| compile（默认） | `node main.js <dir>` | 快速语法检查，不解析 include 链 |
+| renderFile | `node main.js <dir> --render` | 完整 include 解析，能检测 include 路径错误（include 断链记 FAIL；数据相关运行时错误记 WARN，不误报） |
+
+> **关于 Gridea Pro EJS 的技术说明：** Gridea Pro 前端使用标准 EJS npm 包，无自定义 filter 或预处理。因此官方 `ejs.compile()` 的结果与 Gridea Pro 真机完全一致，无需复刻任何 Gridea Pro 特有逻辑。
+
+**CI 集成：**
+
+```yaml
+- uses: actions/setup-node@v4
+  with: { node-version: '20' }
+- run: cd tools/ejs2check && npm install
+- run: node tools/ejs2check/main.js ./themes/{THEME_NAME}
+```
+
+---
+
+### 5.0-EJS.2 EJS 内容验证
+
+> **工具位置：** theme-port-skill 的 `tools/ejs-port-tests/` 目录
+
+在 5.0-EJS.1 通过后，使用 ejs-port-tests 进行内容级验证。将 `tools/ejs-port-tests/` 下的测试文件复制到目标主题根目录的 `tests/` 文件夹，然后在主题目录安装 ejs 依赖并执行：
+
+```bash
+cd <theme-root>
+npm i ejs@3.1.10
+node --test "tests/*.test.js"
+```
+
+**目标：所有测试通过。**
+
+**断言置信度分级（重要）：**
+
+ejs-port-tests 的断言分为两级，复制测试后必须先完成分级判断（各测试文件头部有 L1/L2 注释，逐文件通读）：
+
+| 级别 | 含义 | 失败时的处理 |
+|------|------|-------------|
+| **L1 通用断言** | Gridea EJS 引擎通用规则（官方变量名、分页字段、include 组装模式），适用于所有 EJS 目标迁移 | 主题缺陷，必须修复主题 |
+| **L2 主题专有断言** | 绑定源主题 indigo 的实现细节（配置键 `enableLightbox`/`showTabsBar` 等、JS 命名空间 `window.INDIGO`/`BLOG`、模板名 `post-summary.ejs`/`post-category.ejs`/`blog.ejs` 等） | **先怀疑断言而非主题**：按 `tools/ejs-port-tests/README.md` 的调整指南把断言适配到目标主题（需用户确认），不得为迁就断言改写主题 |
+
+**硬性规则：**
+- 迁移源主题不是 indigo 时，L2 专有断言**必然失败**——这是预期行为，禁止修改目标主题去匹配 indigo 的命名空间/配置键/模板名，只允许调整断言；
+- L1 断言失败一律视为主题缺陷，禁止修改 L1 断言绕过；
+- 阶段七映射积累时，仅凭 L2 专有断言（单一主题的配置键/模板名）得出的映射**只能标记 L2**，不得作为 L1 高置信度映射写入。
+
+ejs-port-tests 基于 Node.js 内置测试运行器（`node --test`），覆盖：
+- EJS 模板编译语法检查
+- Gridea EJS 变量名验证
+- 分页结构/URL 规范检查
+- 摘要渲染逻辑验证
+- 配置项检查
+
+**与 ejs2check 的关系：**
+
+| 工具 | 定位 | 说明 |
+|------|------|------|
+| ejs2check | **权威语法门** | 真 EJS 解析器批量编译，零假阳性，CI 必须通过 |
+| ejs-port-tests | 内容验证 | 运行时 mock 数据 + DOM/文案断言，补充语法检查不覆盖的语义验证 |
+
+两者互补：ejs2check 确保语法正确，ejs-port-tests 确保内容正确。
+
+> **前置依赖：** 需要 ejs 模块，复制到主题目录后执行 `npm i ejs@3.1.10`（与 ejs2check 同版本）。详见 `tools/ejs-port-tests/README.md`。
+
+---
+
+### 5.1 真 Pongo2 语法验证 (权威语法门)
 
 > **注意：** pongo2check 工具位于 **theme-port-skill** 的 `tools/pongo2check/` 目录下。在 theme-port-skill 仓库根目录执行：
 
@@ -480,6 +626,47 @@ python scripts/render_test.py ./themes/{THEME_NAME} --output-dir ./test-output
    - 修改 `assets/mock-data-empty.json` 为无文章场景，重新渲染
    - 确认首页显示"暂无文章"而非崩溃
 
+### 5.3.1 Pongo2 内容验证（pongo2-port-tests）
+
+> **工具位置：** theme-port-skill 的 `tools/pongo2-port-tests/` 目录
+
+在 5.1（pongo2check 语法门）和 5.2（渲染测试）通过后，使用 pongo2-port-tests 进行内容级自动化验证。与 ejs-port-tests 对称，覆盖 Pongo2 迁移中变量名、字段名、陷阱模式的源码断言。
+
+**运行方式（复制到主题目录 tests/ 下）：**
+
+```bash
+cp -r tools/pongo2-port-tests/* {THEME_DIR}/tests/
+cd {THEME_DIR}
+node --test "tests/*.test.js"
+```
+
+**目标：所有测试通过（FAIL=0）。WARN 为建议项。**
+
+**断言分级：** pongo2-port-tests 的 27 项断言全部为 L1 通用断言（源自 `hexo-port-mappings-pongo2.md` 的陷阱记录），且对合法风格差异已内置双兼容（如 `loop.*` vs `forloop.*`、`pagination.hasPrev` vs `pagination.prev`）。若目标主题存在工具未覆盖的合法实现（L2 调整项，如分页器文件名不同），按 `tools/pongo2-port-tests/README.md` 的调整指南处理：先调整断言而非主题，需用户确认；仅凭 L2 调整项得出的映射不得作为 L1 证据写入映射文件。
+
+pongo2-port-tests 覆盖的通用断言（27 项）：
+
+| 测试文件 | 覆盖点 | 关联陷阱 |
+|----------|--------|---------|
+| `archives-group-keys.test.js` | `group.Year`/`group.Posts` 大写、`post.date\|slice`、客户端 JS 分组兼容 | 归档分组键大写、date filter 禁用 |
+| `pagination-fields.test.js` | `pagination.hasPrev/hasNext/prevURL/nextURL`、内联分页兼容 | 分页变量映射 |
+| `post-content-safe.test.js` | `post.content\|safe`、`post.abstract\|safe`、`post.toc\|safe` | HTML 内容必须 safe |
+| `date-filter-trap.test.js` | 禁止 `post.date\|date`、用 `dateFormat`、datetime 用 `post.date` | date filter 不可用 |
+| `loop-forloop.test.js` | `loop.first/last`、`forloop.Counter`、`theme_config\|to_int` | SanitizingLoader loop→forloop 映射 |
+| `theme-config-toggle.test.js` | toggle 非"false"判断、config.json 字段一致性 | toggle 字符串值陷阱 |
+| `tags-links-fields.test.js` | `tag.link`/`tag.count`、`cat.link`、`link.siteName`/`siteLink`、`menus` | 字段名映射 |
+
+**与 pongo2check 的关系：**
+
+| 工具 | 定位 | 说明 |
+|------|------|------|
+| pongo2check | **权威语法门** | 真 Pongo2 解析器批量编译，零假阳性，CI 必须通过 |
+| pongo2-port-tests | 内容验证 | 源码文本断言，检查变量名/字段名/陷阱模式，补充语法检查不覆盖的语义验证 |
+
+两者互补：pongo2check 确保语法正确，pongo2-port-tests 确保内容正确。详见 `tools/pongo2-port-tests/README.md`。
+
+---
+
 ### 5.4 常见内容级问题速查
 
 | 症状 | 可能原因 | 检查位置 |
@@ -533,7 +720,10 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 
 ## 阶段七：映射积累（将本次迁移经验持久化）
 
-> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 theme-port-skill 的 `references/hexo-port-mappings.md` 中，供后续迁移直接复用。
+> **这是让每次迁移真正产生复利效应的关键步骤。** 迁移完成后，将本次的变量映射关系提取并积累到 theme-port-skill 的映射文件中：
+- **Pongo2 目标**：`references/hexo-port-mappings-pongo2.md`
+- **EJS 目标**：`references/hexo-port-mappings-ejs.md`
+供后续迁移直接复用。
 
 阶段七支持**两种使用模式**：
 
@@ -549,7 +739,7 @@ cp -r ~/Documents/Gridea\ Pro/themes/{THEME_NAME} ~/Documents/Gridea\ Pro/themes
 加载 gridea-theme-builder skill 和 theme-port-skill。
 
 请严格按照 theme-port-skill 中阶段七的流程，
-对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings.md。
+对以下源主题和迁移后的主题执行交叉比对，将映射结果追加到 theme-port-skill 的 references/hexo-port-mappings-pongo2.md。
 
 源 Hexo 主题：{HEXO_THEME_PATH}
 迁移后的 Gridea Pongo2 主题：{GRIDEA_THEME_PATH}
@@ -659,7 +849,15 @@ AI 对**未被排除的**文件，逐一执行以下比对：
 
 ### 7.3 写入映射文件
 
-将所有新发现的映射关系**追加**到 theme-port-skill 的 `references/hexo-port-mappings.md`。**不修改项目中其他任何文件。** 映射文件格式如下：
+将所有新发现的映射关系**追加**到 theme-port-skill 对应引擎的映射文件：
+- **Pongo2 目标**：`references/hexo-port-mappings-pongo2.md`
+- **EJS 目标**：`references/hexo-port-mappings-ejs.md`
+
+**不修改项目中其他任何文件。**
+
+**置信度规则：** 仅源自某个主题专有断言/单一主题模板名的映射（如某主题自定义的 config.json 键），只能以 `[L2-...]` 标记写入；只有经 `template-variables.md` 或 Gridea 官方行为交叉验证的映射才能标记 L1。
+
+映射文件格式如下：
 
 ```markdown
 # Hexo → Gridea Pro 变量映射积累
@@ -768,7 +966,7 @@ L2 来源的标记格式：`## 来源：{theme-name}（迁移日期：{YYYY-MM-D
 
 #### 阶段二消费时的优先级
 
-阶段二推导变量映射时，读取 theme-port-skill 的 `hexo-port-mappings.md` 的优先级：
+阶段二推导变量映射时，读取 theme-port-skill 对应引擎映射文件的优先级：
 
 1. **优先采用 L1 映射**（高置信度，可直接复用）
 2. **L2 映射作为参考**（需与 gridea-theme-builder 的 `template-variables.md` 交叉验证，不盲信）
@@ -983,15 +1181,17 @@ Gridea Pro 主题应覆盖以下所有页面。**补全时请保持源主题的�
 
 ## 关键安全规则
 
-### hexo-port-mappings.md 编码保护
+### 映射文件编码保护
 
-> **严重性：高** | 该文件是跨阶段积累的核心先验知识库，编码一旦损坏将导致所有后续迁移的质量基准失效。
+> **严重性：高** | 映射文件是跨阶段积累的核心先验知识库，编码一旦损坏将导致所有后续迁移的质量基准失效。
+> 
+> 本项目有两个映射文件：`hexo-port-mappings-pongo2.md`（Pongo2 目标引擎）和 `hexo-port-mappings-ejs.md`（EJS 目标引擎），均需遵守以下规则。
 
 **规则：**
 
-1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入 theme-port-skill 的 `references/hexo-port-mappings.md`。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
+1. **禁止直接修改**：在任何情况下，不得使用 Python 字符串拼接（含 `"""..."""` 或 `'\n'.join([...])`）的方式将内容写入映射文件。Python 字符串中的 `\t`、`\n`、`\r`、`\a`、`\f`、`\b` 等转义序列会被解析为控制字符，导致 `template` → `\template`（字母 `t` 被替换为 tab 字符）、`theme` → `\theme`、`footer` → `\footer` 等全局级编码污染。
 
-2. **沙箱处理原则**：如需修改该文件，必须先：
+2. **沙箱处理原则**：如需修改映射文件，必须先：
    - 在临时文件（如 `_temp_mappings_test.md`）中写入修改内容
    - 用编码校验脚本检查临时文件是否包含 `[\x07\x08\x0c\x0d]` 范围内的控制字符
    - 确认临时文件中 `template`、`theme`、`footer`、`nav`、`archive`、`base`、`tags`、`toc`、`rss`、`body`、`about`、`time`、`figure`、`font` 等高频词均完整存在
@@ -1003,10 +1203,10 @@ Gridea Pro 主题应覆盖以下所有页面。**补全时请保持源主题的�
 4. **修改后全量校验**：每次修改完成后，必须运行以下检查：
    ```python
    import re
-   content = open('hexo-port-mappings.md', encoding='utf-8').read()
-   bad = re.findall(r'[\x07\x08\x0c\x0d]', content)
-   assert not bad, f"发现 {len(bad)} 个控制字符"
-   # 额外确认高频词完整性
-   for w in ['template', 'theme', 'footer', 'nav', 'archive', 'base', 'tags', 'toc']:
-       assert content.count(w) > 0, f"关键词 '{w}' 丢失"
+   for fname in ['hexo-port-mappings-pongo2.md', 'hexo-port-mappings-ejs.md']:
+       content = open(fname, encoding='utf-8').read()
+       bad = re.findall(r'[\x07\x08\x0c\x0d]', content)
+       assert not bad, f"{fname} 发现 {len(bad)} 个控制字符"
+       for w in ['template', 'theme', 'footer', 'nav', 'archive', 'base', 'tags', 'toc']:
+           assert content.count(w) > 0, f"{fname} 关键词 '{w}' 丢失"
    ```

@@ -1,7 +1,9 @@
-# Hexo → Gridea Pro 变量映射积累
+# Hexo → Gridea Pro (Pongo2) 变量映射积累
 
 > 本文件由阶段七交叉比对生成（需用户确认排除范围），累积所有已确认的跨系统变量映射关系。
 > 后续迁移时，阶段二优先查阅本文件作为先验知识；如有冲突，以 template-variables.md 为准。
+
+本文件仅包含 Pongo2 (Jinja2) 目标引擎的映射。EJS 目标引擎映射见 hexo-port-mappings-ejs.md。
 
 ---
 
@@ -368,3 +370,75 @@ Gridea Pro 遵循"文件名决定输出路径"的约定：
 | 浮动按钮 | `include components/float-btn` + `include components/float-indicator` | 全部内联在 base.html `<script>` 中 | 原 3 个独立组件（search + float-btn + float-indicator）合并为 base.html 内联 |
 | TOC 侧栏 | `include toc` + `+make_toc(true/false)` mixin 服务端渲染 | 服务端 `post.toc\|safe` + 客户端 JS 从 `.post-content` h1-h6 动态重建 | 解决了 max_depth 参数无法传入的问题 |
 | 百度统计 | `js/baidu-tongji.js` 独立文件 | `theme_config.headerScript` 用户自行注入 | 更灵活，不再绑定特定统计平台 |
+
+---
+
+## 来源：typography（迁移日期：2026-08-15）[L1-高置信度]
+
+> 本块是对「hexo-theme-Typography（2025-07-18）」块的补充交叉比对，聚焦上次被排除的评论系统（comments.pug → comments.html + comments/*.html）及本次新发现的映射与修正。
+
+### 前置预检说明
+- pongo2check（真 Pongo2 解析器 · 权威语法门）：28/28 PASS，0 FAIL 0 WARN
+- validate_syntax.py：28/28 PASS，0 ERROR 0 WARN
+- render_test.py：28 FAIL，经确认为工具自身缺陷（非主题错误）：① Windows 路径分隔符 bug（`os.path.relpath` 返回反斜杠 `partials\xxx.html`，但过滤条件写死正斜杠 `partials/`，导致 partials 被误当作可渲染页面 → `TemplateNotFound`）；② mock 未注入 `site`（真实 Gridea Pro 中 `site` 是 `config` 别名）；③ mock 未处理 `page.html` 分支。经用户确认「已知且可接受，继续比对」，来源保持 L1。
+
+### 排除的组件
+- 无（本次全量比对，评论系统亦参与）
+
+### 评论系统映射（上次被排除，本次新增）
+
+| Hexo | Gridea | 发现位置（源 → 目标） | 备注 |
+|-------|--------|----------------------|------|
+| theme.disqus（短名） | commentSetting.shortname | comments.pug → comments/disqus.html | 评论配置由主题配置迁移到 Gridea 全局评论设置 |
+| theme.livere（uid） | 已删除 | comments.pug → — | Gridea 不支持 Livere |
+| theme.duoshuo | 已删除 | mixins.pug → — | Gridea 不支持多说 |
+| theme.dove | theme_config.dove | comments.pug → comments/dove.html | toggle 字段 |
+| theme.duoshuo / theme.disqus / theme.livere | theme_config.showComments 且 commentSetting.showComment | mixins.pug → comments.html | 三平台合并为「主题开关 AND 全局开关」双门控 |
+| page.path（disqus_identifier） | comment_page_id | comments.pug → post.html/page.html/about.html | 由 post.id → post.fileName → post.link 分步回退 |
+| page.title（disqus_title） | comment_page_title | comments.pug → post.html/page.html/about.html | `{% set %}` 注入 |
+| config.url + '/' + page.path（disqus_url） | comment_page_url | comments.pug → post.html/page.html/about.html | 相对路径，JS 运行时补全 origin |
+| config.url（dove 域名） | config.domain | comments.pug → comments/dove.html | 含协议头，直接展示 |
+
+### 评论平台分发（Gridea 特有变量）
+
+| 变量 | 说明 | 备注 |
+|------|------|------|
+| commentSetting.commentPlatform / commentSetting.platform | 当前评论平台 | 两字段名回退，兼容不同版本 |
+| commentSetting.showComment | 全局评论开关 | 与 theme_config.showComments 组合判断 |
+| commentSetting.repo / repoId / category / categoryId | Giscus 仓库配置 | 全局评论设置注入 |
+| commentSetting.appId / appKey / serverURLs / host | Valine/Waline/Cusdis 配置 | 全局评论设置注入 |
+| commentSetting.envId | Twikoo 配置 | 全局评论设置注入 |
+| commentSetting.clientId / clientSecret / owner / admin | Gitalk 配置 | 全局评论设置注入 |
+| commentSetting.shortname | Disqus 短名 | 全局评论设置注入 |
+
+### 全局变量映射（补充）
+
+| Hexo | Gridea | 发现位置（源 → 目标） | 备注 |
+|-------|--------|----------------------|------|
+| theme.title_primary | theme_config.title_primary（回退 site.customConfig.title_primary） | sidebar.pug → sidebar.html | 非标准回退链 |
+| theme.title_secondary | theme_config.title_secondary（回退 site.customConfig.title_secondary） | sidebar.pug → sidebar.html | 非标准回退链 |
+
+### 模板架构映射（本次新增）
+
+| 维度 | Hexo (Pug) | Gridea (Pongo2) | 说明 |
+|------|-----------|-----------------|------|
+| 模板继承 | extends partial/layout + block site_title/description/content | 全页独立 HTML（无 base.html，无 `{% extends %}`） | 每个页面完整重复 head/sidebar/footer/scripts |
+| 页面标题覆盖 | block site_title 继承覆盖 | 各页面 include head.html 后内联写 `<title>` | head.html 内 block 默认值实际不被覆盖 |
+| mixin 组件 | +make_post/+make_page_links/+make_pager/+postList/+tagList/+categoryList | `{% include %}` partial + 内联循环 | post-card/pagination/header/tags/category |
+
+### 归档/站点映射（修正）
+
+| Hexo | Gridea | 发现位置（源 → 目标） | 备注 |
+|-------|--------|----------------------|------|
+| postList() mixin 按 page.posts 年份分组 | archives 数组，group.Year / group.Posts | mixins.pug → archives.html | 本次已正确实现年份分组（旧块曾标记「丢失」，现已修正） |
+| site.pages | menus（含默认回退导航） | mixins.pug → header.html | 未配置菜单时回退 Home/Archive/Tags |
+
+### 陷阱记录（新增/确认）
+
+| 陷阱 | 描述 | 发现位置 |
+|------|------|---------|
+| Giscus data-strict 必须为 1 | data-strict="0" 退化为模糊标题搜索，与 specific 映射组合会命中多个无关 Discussion 导致评论卡在「正在加载预览」；保持 "1"（SHA-1 精确匹配） | comments/giscus.html |
+| Giscus 不读取 data-title/data-url | giscus client.js 只读 repo/repo-id/category/category-id/mapping/term/number/strict/reactions-enabled/emit-metadata/input-position/theme/lang/loading；data-title/data-url 是无效属性，不得添加 | comments/giscus.html |
+| Giscus data-mapping="specific" | 新建 Discussion 标题恒等于 data-term（comment_page_id），回链用 window.location.href | comments/giscus.html |
+| site.customConfig 非标准回退 | 官方约定用 theme_config.xxx；site.customConfig.xxx 是 sidebar/footer 的非标准回退（Pongo2 未定义属性访问返回 undefined 不报错，无害但属死分支） | sidebar.html / footer.html |
+| render_test.py Windows 路径 bug | os.path.relpath 返回反斜杠，partials/ 前缀过滤失效，partials 被误渲染报 TemplateNotFound（工具缺陷，非主题错误） | render_test.py 工具 |

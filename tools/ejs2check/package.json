@@ -1,0 +1,12 @@
+{
+  "name": "ejs2check",
+  "version": "1.0.0",
+  "description": "Gridea Pro 真 EJS 语法校验器",
+  "main": "main.js",
+  "bin": {
+    "ejs2check": "./main.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10"
+  }
+}
