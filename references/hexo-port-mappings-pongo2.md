@@ -378,7 +378,7 @@ Gridea Pro 遵循"文件名决定输出路径"的约定：
 > 本块是对「hexo-theme-Typography（2025-07-18）」块的补充交叉比对，聚焦上次被排除的评论系统（comments.pug → comments.html + comments/*.html）及本次新发现的映射与修正。
 
 ### 前置预检说明
-- pongo2check（真 Pongo2 解析器 · 权威语法门）：28/28 PASS，0 FAIL 0 WARN
+- pongo2check（真 Pongo2 解析器 · 强制语法质量门禁）：28/28 PASS，0 FAIL 0 WARN
 - validate_syntax.py：28/28 PASS，0 ERROR 0 WARN
 - render_test.py：28 FAIL，经确认为工具自身缺陷（非主题错误）：① Windows 路径分隔符 bug（`os.path.relpath` 返回反斜杠 `partials\xxx.html`，但过滤条件写死正斜杠 `partials/`，导致 partials 被误当作可渲染页面 → `TemplateNotFound`）；② mock 未注入 `site`（真实 Gridea Pro 中 `site` 是 `config` 别名）；③ mock 未处理 `page.html` 分支。经用户确认「已知且可接受，继续比对」，来源保持 L1。
 

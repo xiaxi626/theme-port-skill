@@ -4,7 +4,7 @@
 
 ## 为什么需要它
 
-`gridea-theme-builder` 的 `validate_syntax.py` 是**正则启发式**校验，不做真实编译。`pongo2check` 虽用真解析器，但仅支持 Pongo2。ejs2check 用 EJS 官方解析器补上了 EJS 引擎的空白，是 EJS 目标引擎的**权威语法门**。
+`gridea-theme-builder` 的 `validate_syntax.py` 是**正则启发式**校验，不做真实编译。`pongo2check` 虽用真解析器，但仅支持 Pongo2。ejs2check 用 EJS 官方解析器补上了 EJS 引擎的空白，是 EJS 目标引擎的**强制语法质量门禁**。
 
 **与 pongo2check 的关键区别：**
 
@@ -42,7 +42,7 @@ node tools/ejs2check/main.js --help
 | compile（默认） | `node main.js <dir>` | 快速语法检查，仅验证 `ejs.compile()`，不解析 include 链 |
 | renderFile | `node main.js <dir> --render` | 完整 include 解析，使用 `ejs.renderFile()` 递归解析 include 链，能检测 include 路径错误 |
 
-`--render` 模式更彻底（真实解析嵌套 include 链，能检测 include 路径错误）。渲染数据使用内置的「安全数据」代理——任意变量访问/函数调用都返回可继续链式的占位值，因此模板引用真实数据（`site.customConfig.xxx`、`post.tags` 等）时不会因 undefined 误报，保持零假阳性。错误分级：include 断链与编译错误记 **FAIL**；ejs 对嵌套 include 的局部数据做浅拷贝（空对象），由此产生的数据相关运行时错误（ReferenceError/TypeError 等）记 **WARN**——真机注入真实数据后通常不存在，不影响语法门判定。推荐在 CI 中使用 compile 模式作为快速检查，在本地开发时使用 `--render` 模式进行深度检查。
+`--render` 模式更彻底（真实解析嵌套 include 链，能检测 include 路径错误）。渲染数据使用内置的「安全数据」代理——任意变量访问/函数调用都返回可继续链式的占位值，因此模板引用真实数据（`site.customConfig.xxx`、`post.tags` 等）时不会因 undefined 误报，保持零假阳性。错误分级：include 断链与编译错误记 **FAIL**；ejs 对嵌套 include 的局部数据做浅拷贝（空对象），由此产生的数据相关运行时错误（ReferenceError/TypeError 等）记 **WARN**——真机注入真实数据后通常不存在，不影响质量门禁判定。推荐在 CI 中使用 compile 模式作为快速检查，在本地开发时使用 `--render` 模式进行深度检查。
 
 ## 输出格式
 
@@ -74,7 +74,7 @@ WARN  templates/tag.ejs → referenced file not found: partials/missing.ejs
 
 | 工具 | 定位 | 说明 |
 |------|------|------|
-| ejs2check | **权威语法门** | 真 EJS 解析器批量编译，零假阳性，CI 必须通过 |
+| ejs2check | **强制语法质量门禁** | 真 EJS 解析器批量编译，零假阳性，CI 必须通过 |
 | ejs-port-tests | 内容验证 | 运行时 mock 数据 + DOM/文案断言，补充语法检查不覆盖的语义验证 |
 
 两者互补：ejs2check 确保语法正确，ejs-port-tests 确保内容正确。

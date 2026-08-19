@@ -25,8 +25,11 @@ Gridea Pro 专属的 **Hexo → Gridea Pro 主题迁移 Skill**。将本 Skill �
 git clone https://github.com/xiaxi626/theme-port-skill.git
 cd theme-port-skill
 
-# 安装 EJS 依赖（ejs2check 与 ejs-port-tests 共用）
+# 安装 ejs2check 依赖（ejs@3.1.10，与 Gridea Pro 前端版本一致）
 cd tools/ejs2check && npm install && cd ../..
+
+# ejs-port-tests 运行时需在目标主题目录单独安装同版本 ejs（Node 模块解析不会命中 ejs2check 的 node_modules）
+cd <theme-root> && npm i ejs@3.1.10
 
 # pongo2check 通过 go run 自动拉取依赖；pongo2-port-tests 零依赖（Node 内置模块）
 ```
@@ -61,6 +64,14 @@ theme-builder-skill/           ← 依赖 Skill：工具链 + 参考文档
 ```
 
 theme-port-skill **依赖** gridea-theme-builder 的 `scripts/`（脚手架、校验、渲染）和 `references/`（模板变量参考等），但**映射积累结果写入本项目**的 `references/` 目录（按目标引擎分文件），不再放入 gridea-theme-builder。
+
+
+### 工作流文档拆分与中间产物
+
+- `SKILL.md`：主流程与门禁契约；详细操作见 `references/stage-1-reverse-analysis.md`、`references/stage-5-parity-verification.md`。
+- `references/port-artifacts.md`：定义 `_port/{THEME_NAME}/` 中间产物模板。`_port/` 在迁移执行时动态创建，不属于仓库提交内容。
+- `tools/audit_static.py`：theme-port-skill 自有静态资源闭合审计工具，不修改/依赖 gridea-theme-builder；在阶段五 5.5 使用。
+
 
 ## 怎么用
 
@@ -142,7 +153,7 @@ cd tools/pongo2check && go build -o pongo2check && ./pongo2check <theme-dir>
 
 | 工具 | 定位 | 说明 |
 |------|------|------|
-| pongo2check | **权威语法门** | 真 Pongo2 解析器批量编译，零假阳性，CI 必须通过 |
+| pongo2check | **强制语法质量门禁** | 真 Pongo2 解析器批量编译，零假阳性，CI 必须通过 |
 | pongo2-port-tests | 内容验证 | 源码文本断言，检查变量名/字段名/陷阱模式，补充语法检查不覆盖的语义验证 |
 
 两者互补：pongo2check 确保语法正确，pongo2-port-tests 确保内容正确。
@@ -178,7 +189,7 @@ node --test "tests/*.test.js"
 
 ### 为什么需要它
 
-gridea-theme-builder 的 `validate_syntax.py` 是**正则启发式**校验，不做真实编译，对 EJS 引擎无法使用。ejs-port-tests 虽然能验证 EJS 编译，但它是内容级断言，不是权威语法门。ejs2check 填补了 EJS 引擎没有真解析器校验的空白。
+gridea-theme-builder 的 `validate_syntax.py` 是**正则启发式**校验，不做真实编译，对 EJS 引擎无法使用。ejs-port-tests 虽然能验证 EJS 编译，但它是内容级断言，不是强制语法质量门禁。ejs2check 填补了 EJS 引擎没有真解析器校验的空白。
 
 **关于 Gridea Pro EJS 的技术说明：** Gridea Pro 前端使用标准 EJS npm 包，无自定义 filter 或预处理。因此官方 `ejs.compile()` 的结果与 Gridea Pro 真机完全一致，无需复刻任何 Gridea Pro 特有逻辑。这使得 ejs2check 比 pongo2check 实现更简洁，同时保持零假阳性。
 
@@ -222,7 +233,7 @@ node tools/ejs2check/main.js <theme-dir> --render
 
 | 工具 | 定位 | 说明 |
 |------|------|------|
-| ejs2check | **权威语法门** | 真 EJS 解析器批量编译，零假阳性，CI 必须通过 |
+| ejs2check | **强制语法质量门禁** | 真 EJS 解析器批量编译，零假阳性，CI 必须通过 |
 | ejs-port-tests | 内容验证 | 运行时 mock 数据 + DOM/文案断言，补充语法检查不覆盖的语义验证 |
 
 两者互补：ejs2check 确保语法正确，ejs-port-tests 确保内容正确。

@@ -16,3 +16,6 @@ test-output/
 # 操作系统
 .DS_Store
 Thumbs.db
+
+# 迁移中间产物（动态创建，不入库）
+_port/
